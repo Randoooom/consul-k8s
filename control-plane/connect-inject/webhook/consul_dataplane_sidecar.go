@@ -105,6 +105,12 @@ func (w *MeshWebhook) consulDataplaneSidecar(namespace corev1.Namespace, pod cor
 		container.VolumeMounts = append(container.VolumeMounts, volumeMounts...)
 	}
 
+    // ref https://github.com/hashicorp/consul-k8s/pull/911
+	lifecycle, err := w.envoySidecarLifecycle(pod)
+    if err == nil {
+    	container.Lifecycle = lifecycle
+    }
+
 	tproxyEnabled, err := common.TransparentProxyEnabled(namespace, pod, w.EnableTransparentProxy)
 	if err != nil {
 		return corev1.Container{}, err
@@ -315,6 +321,30 @@ func (w *MeshWebhook) getContainerSidecarArgs(namespace corev1.Namespace, mpi mu
 		args = append(args, envoyExtraArgs...)
 	}
 	return args, nil
+}
+
+// ref https://github.com/hashicorp/consul-k8s/pull/911
+func (w *MeshWebhook) envoySidecarLifecycle(pod corev1.Pod) (*corev1.Lifecycle, error) {
+
+	delay, annotationSet := pod.Annotations[constants.AnnotationSidecarProxyPreStopDelay]
+
+	if !annotationSet {
+		return &corev1.Lifecycle{}, fmt.Errorf("Annotation not set")
+	}
+
+	lifecycle := &corev1.Lifecycle{
+		PreStop: &corev1.Handler{
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"/bin/sh",
+					"-c",
+					"sleep " + delay,
+				},
+			},
+		},
+	}
+
+	return lifecycle, nil
 }
 
 func (w *MeshWebhook) sidecarResources(pod corev1.Pod) (corev1.ResourceRequirements, error) {

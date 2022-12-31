@@ -92,6 +92,10 @@ const (
 	AnnotationSidecarProxyMemoryLimit   = "consul.hashicorp.com/sidecar-proxy-memory-limit"
 	AnnotationSidecarProxyMemoryRequest = "consul.hashicorp.com/sidecar-proxy-memory-request"
 
+	// ref https://github.com/hashicorp/consul-k8s/pull/911
+	// annotationSidecarProxyPreStopDelay is the number of seconds to delay Envoy Sidecar shutdown
+    AnnotationSidecarProxyPreStopDelay = "consul.hashicorp.com/sidecar-proxy-prestop-delay"
+
 	// annotations for sidecar volumes.
 	AnnotationConsulSidecarUserVolume      = "consul.hashicorp.com/consul-sidecar-user-volume"
 	AnnotationConsulSidecarUserVolumeMount = "consul.hashicorp.com/consul-sidecar-user-volume-mount"
